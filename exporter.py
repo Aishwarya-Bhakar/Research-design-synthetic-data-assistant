@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from zipfile import ZipFile, ZIP_DEFLATED
 from datetime import datetime
+from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile
 
 import pandas as pd
 
@@ -19,6 +19,8 @@ def export_bundle(
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
+    clean_dataset = dataset.reset_index(drop=True).copy()
+
     dataset_csv = out / "synthetic_dataset.csv"
     dataset_xlsx = out / "synthetic_dataset.xlsx"
     literature_json = out / "literature_summary.json"
@@ -26,9 +28,9 @@ def export_bundle(
     schema_json = out / "generation_schema.json"
     validation_json = out / "validation_report.json"
 
-    dataset.to_csv(dataset_csv, index=False)
+    clean_dataset.to_csv(dataset_csv, index=False)
     with pd.ExcelWriter(dataset_xlsx, engine="openpyxl") as writer:
-        dataset.to_excel(writer, index=False, sheet_name="Synthetic Data")
+        clean_dataset.to_excel(writer, index=False, sheet_name="Synthetic Data")
         pd.DataFrame(codebook).to_excel(writer, index=False, sheet_name="Codebook")
 
     for path, data in [
@@ -45,3 +47,4 @@ def export_bundle(
             z.write(file, arcname=file.name)
 
     return zip_path
+
